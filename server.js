@@ -4,10 +4,11 @@ const dotenv = require("dotenv");
 const { connectDB } = require("./src/config/db");
 
 dotenv.config();
-
+const authRoutes = require("./src/routes/authRoutes");
 const app = express();
 
 app.use(express.json());
+app.use("/api/auth",authRoutes);
 
 async function startServer(){
     try{
