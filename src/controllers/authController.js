@@ -55,8 +55,19 @@ async function loginUser(req,res){
                 error:"Invalid email or password"
             });
         }
+        const jwt = require("jsonwebtoken");
+        const token = jwt.sign(
+            {
+                userId: user._id
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "1d"
+            }
+        );
         return res.status(200).json({
-            message:"Login Successful"
+            message:"Login Successful",
+            token
         });
     }
     catch(error){
