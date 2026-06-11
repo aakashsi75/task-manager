@@ -10,6 +10,12 @@ async function registerUser(req,res){
                 error:"Name, Email and Password required"
             });
         }
+        const existingUser = await users.findOne({email:email});
+        if(existingUser){
+            return res.status(409).json({
+                error:"Email already exists"
+            })
+        }
         const hashedpass = await bcrypt.hash(password,10);
         const result = await users.insertOne({
             name,
