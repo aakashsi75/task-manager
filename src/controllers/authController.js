@@ -6,7 +6,7 @@ async function registerUser(req,res){
         const users = getUsersCollection();
         const { name, email, password } = req.body;
         if(!name || !email || !password){
-            return res.status(500).json({
+            return res.status(400).json({
                 error:"Name, Email and Password required"
             });
         }
@@ -28,6 +28,39 @@ async function registerUser(req,res){
     }
 }
 
+async function loginUser(req,res){
+    try{
+        const users = getUsersCollection();
+        const { email, password } = req.body;
+        if(!email || !password){
+            return res.status(400).json({
+                error:"Email,Password is required"
+            })
+        }
+        const user = await users.findOne({email:email});
+        if(!user){
+            return res.status(401).json({
+                error:"Invalid email or password"
+            });
+        }
+        const isMatch = bcrypt.compare(password,user.password);
+        if(!isMatch){
+            return res.status(401).json({
+                error:"Invalid email or password"
+            });
+        }
+        return res.status(200).json({
+            message:"Login Successful"
+        });
+    }
+    catch(error){
+        res.status(500).json({
+            error:error.message
+        });
+    }
+}
+
 module.exports = {
-    registerUser
+    registerUser,
+    loginUser
 };
