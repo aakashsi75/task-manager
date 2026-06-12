@@ -14,7 +14,8 @@ async function createTask(req,res){
         await tasks.insertOne({
             title:title,
             completed:false,
-            userId:userId
+            userId:userId,
+            createdAt: new Date()
         });
         return res.status(201).json({
             message:"Task created"
@@ -69,8 +70,32 @@ async function updateTask(req,res){
     }
 }
 
+async function deleteTask(req,res){
+    try{
+        const taskId = req.params.id;
+        const userId = req.user.userId;
+        const tasks = getTasksCollection();
+        const task = await tasks.findOne({_id:new ObjectId(taskId),userId:userId});
+        if(!task){
+            return res.status(404).json({
+                error:"Task Not Found"
+            });
+        }
+        await tasks.deleteOne({_id:new ObjectId(taskId),userId:userId});
+        return res.status(200).json({
+            message:"Task deleted successfully"
+        })  
+    }
+    catch(error){
+        return res.status(500).json({
+            error:error.message
+        });
+    }
+}
+
 module.exports = {
     createTask,
     getTasks,
-    updateTask
+    updateTask,
+    deleteTask
 };
