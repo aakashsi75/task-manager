@@ -1,20 +1,17 @@
 const { getUsersCollection } = require("../db/users");
 const bcrypt = require("bcryptjs");
+const AppError = require("../utils/AppError");
 
-async function registerUser(req,res){
+async function registerUser(req,res,next){
     try{
         const users = getUsersCollection();
         const { name, email, password } = req.body;
         if(!name || !email || !password){
-            return res.status(400).json({
-                error:"Name, Email and Password required"
-            });
+            throw new AppError("Name, Email and Password required",400);
         }
         const existingUser = await users.findOne({email:email});
         if(existingUser){
-            return res.status(409).json({
-                error:"Email already exists"
-            })
+            throw new AppError("Email already exists",409);
         }
         const hashedpass = await bcrypt.hash(password,10);
         const result = await users.insertOne({
@@ -28,32 +25,24 @@ async function registerUser(req,res){
             id: result.insertedId
         });
     }catch(error){
-        res.status(500).json({
-            error:error.message
-        });
+        next(error);
     }
 }
 
-async function loginUser(req,res){
+async function loginUser(req,res,next){
     try{
         const users = getUsersCollection();
         const { email, password } = req.body;
         if(!email || !password){
-            return res.status(400).json({
-                error:"Email,Password is required"
-            })
+            throw new AppError("Email,Password is required",400);
         }
         const user = await users.findOne({email:email});
         if(!user){
-            return res.status(401).json({
-                error:"Invalid email or password"
-            });
+            throw new AppError("Invalid email or password",401);
         }
-        const isMatch = bcrypt.compare(password,user.password);
+        const isMatch = await bcrypt.compare(password,user.password);
         if(!isMatch){
-            return res.status(401).json({
-                error:"Invalid email or password"
-            });
+            throw new AppError("Invalid email or password",401);
         }
         const jwt = require("jsonwebtoken");
         const token = jwt.sign(
@@ -71,9 +60,7 @@ async function loginUser(req,res){
         });
     }
     catch(error){
-        res.status(500).json({
-            error:error.message
-        });
+        next(error);
     }
 }
 

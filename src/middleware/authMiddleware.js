@@ -1,11 +1,10 @@
 const jwt = require("jsonwebtoken");
+const AppError = require("../utils/AppError");
 
 function authMiddleware(req,res,next){
     const authHeader = req.headers.authorization;
     if(!authHeader){
-        return res.status(401).json({
-            error:"No token Provided"
-        });
+        return next(new AppError("No token Provided",401));
     }
     const arr = authHeader.split(" ");
     const token = arr[1];
@@ -18,9 +17,7 @@ function authMiddleware(req,res,next){
         next();
     }
     catch(error){
-        res.status(401).json({
-            error:"Token cannot be decoded"
-        })
+        next(new AppError("Token cannot be decoded",401));
     }
 }
 

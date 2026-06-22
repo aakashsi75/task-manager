@@ -1,15 +1,14 @@
 const {getTasksCollection} = require("../db/tasks");
 const { ObjectId } = require("mongodb");
+const AppError = require("../utils/AppError");
 
-async function createTask(req,res){
+async function createTask(req,res,next){
     try{
         const {title} = req.body;
         const userId = req.user.userId;
         const tasks = getTasksCollection();
         if(!title){
-            return res.status(400).json({
-                error:"Title not provided"
-            })
+            throw new AppError("Title is required",400);
         };
         await tasks.insertOne({
             title:title,
@@ -22,13 +21,11 @@ async function createTask(req,res){
         })
     }
     catch(error){
-        return res.status(500).json({
-            error:error.message
-        });
+        next(error);
     }
 }
 
-async function getTasks(req,res){
+async function getTasks(req,res,next){
     try{
         const tasks = getTasksCollection();
         const userTasks = await tasks
@@ -39,24 +36,24 @@ async function getTasks(req,res){
         });
     }
     catch(error){
-        return res.status(500).json({
-            error:error.message
-        })
+        next(error);
     }
 }
 
-async function updateTask(req,res){
+async function updateTask(req,res,next){
     try{
         const taskId = req.params.id;
+        if(!ObjectId.isValid(taskId)){
+            throw new AppError("Invalid Task ID",400);
+        }
         const userId = req.user.userId;
         const tasks = getTasksCollection();
-        const task = await tasks.findOne({_id:new ObjectId(taskId),userId:userId});
+        const objectId = new ObjectId(taskId);
+        const task = await tasks.findOne({_id:objectId,userId:userId});
         if(!task){
-            return res.status(404).json({
-                error:"Task not Found"
-            })
+            throw new AppError("Task Not Found",404);
         }
-        await tasks.updateOne({_id:new ObjectId(taskId),userId:userId},{$set: {completed:!task.completed}});
+        await tasks.updateOne({_id:objectId,userId:userId},{$set: {completed:!task.completed}});
         return res.status(200).json({
             message:"Task Updated Successfully",
             taskId
@@ -64,32 +61,30 @@ async function updateTask(req,res){
 
     }
     catch(error){
-        return res.status(500).json({
-            error:error.message
-        });
+        next(error);
     }
 }
 
-async function deleteTask(req,res){
+async function deleteTask(req,res,next){
     try{
         const taskId = req.params.id;
+        if(!ObjectId.isValid(taskId)){
+            throw new AppError("Invalid Task ID",400);
+        }
         const userId = req.user.userId;
         const tasks = getTasksCollection();
-        const task = await tasks.findOne({_id:new ObjectId(taskId),userId:userId});
+        const objectId = new ObjectId(taskId);
+        const task = await tasks.findOne({_id:objectId,userId:userId});
         if(!task){
-            return res.status(404).json({
-                error:"Task Not Found"
-            });
+            throw new AppError("Task Not Found",404);
         }
-        await tasks.deleteOne({_id:new ObjectId(taskId),userId:userId});
+        await tasks.deleteOne({_id:objectId,userId:userId});
         return res.status(200).json({
             message:"Task deleted successfully"
         })  
     }
     catch(error){
-        return res.status(500).json({
-            error:error.message
-        });
+        next(error)
     }
 }
 
