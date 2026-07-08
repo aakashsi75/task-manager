@@ -17,7 +17,6 @@ app.get("/",(req,res)=>{
     res.send("Task Manager API running");
 })
 
-
 app.use(errorMiddleware);
 
 async function startServer(){

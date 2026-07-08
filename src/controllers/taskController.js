@@ -7,9 +7,6 @@ async function createTask(req,res,next){
         const {title} = req.body;
         const userId = req.user.userId;
         const tasks = getTasksCollection();
-        if(!title){
-            throw new AppError("Title is required",400);
-        };
         await tasks.insertOne({
             title:title,
             completed:false,
