@@ -6,9 +6,9 @@ async function registerUser(req,res,next){
     try{
         const users = getUsersCollection();
         const { name, email, password } = req.body;
-        if(!name || !email || !password){
-            throw new AppError("Name, Email and Password required",400);
-        }
+        // if(!name || !email || !password){
+        //     throw new AppError("Name, Email and Password required",400);
+        // }
         const existingUser = await users.findOne({email:email});
         if(existingUser){
             throw new AppError("Email already exists",409);
@@ -33,9 +33,9 @@ async function loginUser(req,res,next){
     try{
         const users = getUsersCollection();
         const { email, password } = req.body;
-        if(!email || !password){
-            throw new AppError("Email,Password is required",400);
-        }
+        // if(!email || !password){
+        //     throw new AppError("Email,Password is required",400);
+        // }
         const user = await users.findOne({email:email});
         if(!user){
             throw new AppError("Invalid email or password",401);
